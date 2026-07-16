@@ -1,0 +1,10 @@
+{
+  "name": "collab-demo-app",
+  "version": "1.0.0",
+  "description": "Tiny user API — the shared codebase two devs hack on during the demo",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node src/server.mjs"
+  }
+}

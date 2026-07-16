@@ -1,0 +1,279 @@
+<title>Collab — Process Flow</title>
+<style>
+  :root {
+    --paper: #f2f5f7;
+    --panel: #ffffff;
+    --ink: #182230;
+    --ink-2: #52606f;
+    --line: #cfd8e0;
+    --f-start: #27a05f;
+    --f-hook: #4d63d8;
+    --f-kylon: #0f6fae;
+    --f-dec: #f2a83b;
+    --f-warn: #d64545;
+    --t-oncolor: #ffffff;
+    --t-ondec: #2b2413;
+    --note-bg: #e7ebef;
+    --yes: #1f8a53;
+    --no: #c74343;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #10161d; --panel: #1a222c; --ink: #e7edf3; --ink-2: #9aa8b7;
+      --line: #33404d; --f-start: #2c8f60; --f-hook: #5b6ee8; --f-kylon: #2d7fb8;
+      --f-dec: #d9a04a; --f-warn: #c95252; --t-oncolor: #f4f7fa; --t-ondec: #17130a;
+      --note-bg: #232c37; --yes: #57bd8a; --no: #e07070;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #10161d; --panel: #1a222c; --ink: #e7edf3; --ink-2: #9aa8b7;
+    --line: #33404d; --f-start: #2c8f60; --f-hook: #5b6ee8; --f-kylon: #2d7fb8;
+    --f-dec: #d9a04a; --f-warn: #c95252; --t-oncolor: #f4f7fa; --t-ondec: #17130a;
+    --note-bg: #232c37; --yes: #57bd8a; --no: #e07070;
+  }
+  :root[data-theme="light"] {
+    --paper: #f2f5f7; --panel: #ffffff; --ink: #182230; --ink-2: #52606f;
+    --line: #cfd8e0; --f-start: #27a05f; --f-hook: #4d63d8; --f-kylon: #0f6fae;
+    --f-dec: #f2a83b; --f-warn: #d64545; --t-oncolor: #ffffff; --t-ondec: #2b2413;
+    --note-bg: #e7ebef; --yes: #1f8a53; --no: #c74343;
+  }
+
+  body { background: var(--paper); color: var(--ink); font-family: var(--sans); margin: 0; padding: 2rem 1rem 3.5rem; }
+  .page { max-width: 980px; margin: 0 auto; }
+  h1 { text-align: center; font-size: 1.7rem; margin: 0 0 0.2rem; letter-spacing: 0.01em; }
+  .sub { text-align: center; color: var(--ink-2); font-size: 0.9rem; margin: 0 0 1.4rem; }
+
+  .legend {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem 1.4rem;
+    font-size: 0.75rem; color: var(--ink-2); margin-bottom: 1.6rem;
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 0.45rem; }
+  .sw { display: inline-block; width: 26px; height: 15px; }
+  .sw.oval { background: var(--f-start); border-radius: 999px; }
+  .sw.hook { background: var(--f-hook); border-radius: 3px; }
+  .sw.kylon { background: var(--f-kylon); border-radius: 3px; }
+  .sw.local { background: var(--panel); border: 1.5px solid var(--line); border-radius: 3px; }
+  .sw.dec { background: var(--f-dec); transform: rotate(45deg) scale(0.72); width: 16px; height: 16px; }
+  .sw.warn { background: var(--f-warn); border-radius: 3px; }
+  .sw.note { background: var(--note-bg); border-radius: 2px 8px 2px 2px; }
+
+  .chart-wrap { overflow-x: auto; }
+  svg.chart { width: 100%; min-width: 760px; height: auto; display: block; }
+
+  .shape-start { fill: var(--f-start); }
+  .shape-hook { fill: var(--f-hook); }
+  .shape-kylon { fill: var(--f-kylon); }
+  .shape-warn { fill: var(--f-warn); }
+  .shape-dec { fill: var(--f-dec); }
+  .shape-local { fill: var(--panel); stroke: var(--line); stroke-width: 1.6; }
+  .shape-note { fill: var(--note-bg); }
+
+  text { font-family: var(--sans); }
+  .t { font-size: 14.5px; font-weight: 600; fill: var(--t-oncolor); text-anchor: middle; }
+  .t2 { font-size: 11.5px; font-family: var(--mono); fill: var(--t-oncolor); opacity: 0.85; text-anchor: middle; }
+  .t-dec { font-size: 13.5px; font-weight: 650; fill: var(--t-ondec); text-anchor: middle; }
+  .t-local { fill: var(--ink); }
+  .t2-local { fill: var(--ink-2); opacity: 1; }
+  .t-note { font-size: 11px; font-family: var(--mono); fill: var(--ink-2); text-anchor: middle; }
+  .edge { stroke: var(--ink-2); stroke-width: 1.8; fill: none; }
+  .lbl-yes { font-size: 12.5px; font-weight: 700; fill: var(--yes); }
+  .lbl-no { font-size: 12.5px; font-weight: 700; fill: var(--no); }
+  .lbl { font-size: 11.5px; fill: var(--ink-2); font-family: var(--mono); }
+
+  footer { text-align: center; margin-top: 1.6rem; font-size: 0.75rem; color: var(--ink-2); font-family: var(--mono); }
+</style>
+
+<div class="page">
+  <h1>Collab — Process Flow</h1>
+  <p class="sub">One prompt's full lifecycle: every hook, every Kylon call, every decision.</p>
+
+  <div class="legend">
+    <span><i class="sw oval"></i> start / end</span>
+    <span><i class="sw hook"></i> Claude Code hook</span>
+    <span><i class="sw kylon"></i> Kylon network call</span>
+    <span><i class="sw local"></i> local (git, no network)</span>
+    <span><i class="sw dec"></i> decision</span>
+    <span><i class="sw warn"></i> warning built</span>
+    <span><i class="sw note"></i> artifact</span>
+  </div>
+
+  <div class="chart-wrap">
+  <svg class="chart" viewBox="0 0 940 1965" role="img" aria-label="Collab process flowchart">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="var(--ink-2)"/>
+      </marker>
+    </defs>
+
+    <!-- ================= EDGES (drawn first, under nodes) ================= -->
+    <!-- spine -->
+    <line class="edge" x1="470" y1="104" x2="470" y2="137" marker-end="url(#arr)"/>
+    <line class="edge" x1="470" y1="199" x2="470" y2="232" marker-end="url(#arr)"/>
+    <line class="edge" x1="470" y1="294" x2="470" y2="327" marker-end="url(#arr)"/>
+    <line class="edge" x1="470" y1="389" x2="470" y2="422" marker-end="url(#arr)"/>
+    <line class="edge" x1="470" y1="484" x2="470" y2="511" marker-end="url(#arr)"/>
+    <!-- dev-b external oval feeds the read -->
+    <line class="edge" x1="655" y1="455" x2="634" y2="455" marker-end="url(#arr)"/>
+    <!-- decision 1: yes down -->
+    <line class="edge" x1="470" y1="635" x2="470" y2="662" marker-end="url(#arr)"/>
+    <text class="lbl-yes" x="483" y="655">yes ⚠</text>
+    <!-- decision 1: no — around the warning chain, into agent node -->
+    <path class="edge" d="M600,575 L740,575 L740,985 L634,985" marker-end="url(#arr)"/>
+    <text class="lbl-no" x="612" y="563">no</text>
+    <text class="lbl" x="752" y="770" transform="rotate(90 752 770)">context injected, no warning</text>
+    <!-- warn chain -->
+    <line class="edge" x1="470" y1="724" x2="470" y2="757" marker-end="url(#arr)"/>
+    <line class="edge" x1="470" y1="819" x2="470" y2="852" marker-end="url(#arr)"/>
+    <line class="edge" x1="470" y1="914" x2="470" y2="952" marker-end="url(#arr)"/>
+    <!-- agent → posttooluse -->
+    <line class="edge" x1="470" y1="1014" x2="470" y2="1047" marker-end="url(#arr)"/>
+    <text class="lbl" x="484" y="1038">on every Edit / Write</text>
+    <line class="edge" x1="470" y1="1109" x2="470" y2="1142" marker-end="url(#arr)"/>
+    <line class="edge" x1="470" y1="1204" x2="470" y2="1237" marker-end="url(#arr)"/>
+    <line class="edge" x1="470" y1="1299" x2="470" y2="1326" marker-end="url(#arr)"/>
+    <!-- decision 2: yes — left to mid-turn notify -->
+    <line class="edge" x1="340" y1="1390" x2="319" y2="1390" marker-end="url(#arr)"/>
+    <text class="lbl-yes" x="336" y="1378" text-anchor="end">yes ⚠</text>
+    <!-- decision 2: no — straight down to decision 3 -->
+    <line class="edge" x1="470" y1="1450" x2="470" y2="1501" marker-end="url(#arr)"/>
+    <text class="lbl-no" x="483" y="1480">no</text>
+    <!-- mid-turn chain rejoins at decision 3 -->
+    <path class="edge" d="M175,1420 L175,1560 L336,1560" marker-end="url(#arr)"/>
+    <text class="lbl" x="188" y="1500">agent adapts, keeps working</text>
+    <!-- decision 3: no — loop back up to PostToolUse -->
+    <path class="edge" d="M600,1560 L760,1560 L760,1080 L634,1080" marker-end="url(#arr)"/>
+    <text class="lbl-no" x="612" y="1548">no</text>
+    <text class="lbl" x="772" y="1330" transform="rotate(90 772 1330)">next edit</text>
+    <!-- decision 3: yes down -->
+    <line class="edge" x1="470" y1="1615" x2="470" y2="1647" marker-end="url(#arr)"/>
+    <text class="lbl-yes" x="483" y="1640">yes</text>
+    <line class="edge" x1="470" y1="1709" x2="470" y2="1742" marker-end="url(#arr)"/>
+    <line class="edge" x1="470" y1="1804" x2="470" y2="1840" marker-end="url(#arr)"/>
+
+    <!-- ================= NODES ================= -->
+    <!-- 1 START -->
+    <ellipse class="shape-start" cx="470" cy="70" rx="180" ry="34"/>
+    <text class="t" x="470" y="66">Dev A prompts Claude Code</text>
+    <text class="t2" x="470" y="84">"rename getUser → fetchUser"</text>
+
+    <!-- 2 UserPromptSubmit hook -->
+    <rect class="shape-hook" x="310" y="141" width="320" height="58" rx="6"/>
+    <text class="t" x="470" y="166">UserPromptSubmit hook</text>
+    <text class="t2" x="470" y="184">fires BEFORE the agent sees the prompt</text>
+    <!-- note -->
+    <path class="shape-note" d="M130,150 h150 v34 q-8,8 -16,0 q-8,-8 -16,0 q-8,8 -16,0 q-8,-8 -16,0 q-8,8 -16,0 q-8,-8 -16,0 q-8,8 -16,0 q-8,-8 -16,0 q-8,8 -16,0 z"/>
+    <text class="t-note" x="205" y="171">.claude/settings.json</text>
+    <line class="edge" x1="284" y1="170" x2="306" y2="170" stroke-dasharray="3 3"/>
+
+    <!-- 3 predict (local) -->
+    <rect class="shape-local" x="310" y="236" width="320" height="58" rx="6"/>
+    <text class="t t-local" x="470" y="261">Predict the file set (local)</text>
+    <text class="t2 t2-local" x="470" y="279">paths in prompt + git grep of symbols</text>
+
+    <!-- 4 kylon write heartbeat -->
+    <rect class="shape-kylon" x="310" y="331" width="320" height="58" rx="6"/>
+    <text class="t" x="470" y="356">⇄ Kylon call — publish heartbeat</text>
+    <text class="t2" x="470" y="374">file write /shared/collab/state-dev-a.json</text>
+    <!-- note -->
+    <path class="shape-note" d="M130,340 h150 v34 q-8,8 -16,0 q-8,-8 -16,0 q-8,8 -16,0 q-8,-8 -16,0 q-8,8 -16,0 q-8,-8 -16,0 q-8,8 -16,0 q-8,-8 -16,0 q-8,8 -16,0 z"/>
+    <text class="t-note" x="205" y="356">branch · predicted files</text>
+    <text class="t-note" x="205" y="369">status: planning</text>
+    <line class="edge" x1="284" y1="360" x2="306" y2="360" stroke-dasharray="3 3"/>
+
+    <!-- 5 kylon read teammate -->
+    <rect class="shape-kylon" x="310" y="426" width="320" height="58" rx="6"/>
+    <text class="t" x="470" y="446">⇄ Kylon call — fetch teammate state</text>
+    <text class="t2" x="470" y="462">file read roster + state-dev-b.json</text>
+    <text class="t2" x="470" y="476">history search "collab:" (unread msgs)</text>
+
+    <!-- dev-b external -->
+    <ellipse class="shape-start" cx="790" cy="455" rx="135" ry="36"/>
+    <text class="t" x="790" y="451">Dev B's agent</text>
+    <text class="t2" x="790" y="469">same loop, in parallel</text>
+
+    <!-- 6 DECISION 1 -->
+    <polygon class="shape-dec" points="470,515 600,575 470,635 340,575"/>
+    <text class="t-dec" x="470" y="566">My files intersect</text>
+    <text class="t-dec" x="470" y="583">dev-b's plan or edits?</text>
+
+    <!-- 7 warning built -->
+    <rect class="shape-warn" x="310" y="666" width="320" height="58" rx="6"/>
+    <text class="t" x="470" y="691">Build tiered warning</text>
+    <text class="t2" x="470" y="709">OVERLAP · ACTIVE COLLISION · HUNK</text>
+
+    <!-- 8 kylon message send -->
+    <rect class="shape-kylon" x="310" y="761" width="320" height="58" rx="6"/>
+    <text class="t" x="470" y="786">⇄ Kylon call — alert the humans</text>
+    <text class="t2" x="470" y="804">message send → #dev-sync</text>
+    <!-- note -->
+    <path class="shape-note" d="M60,768 h220 v36 q-11,8 -22,0 q-11,-8 -22,0 q-11,8 -22,0 q-11,-8 -22,0 q-11,8 -22,0 q-11,-8 -22,0 q-11,8 -22,0 q-11,-8 -22,0 q-11,8 -22,0 q-11,-8 -22,0 z"/>
+    <text class="t-note" x="170" y="784">⚠ Overlap: both agents plan</text>
+    <text class="t-note" x="170" y="797">to edit src/users.mjs</text>
+    <line class="edge" x1="284" y1="790" x2="306" y2="790" stroke-dasharray="3 3"/>
+
+    <!-- 9 inject -->
+    <rect class="shape-hook" x="310" y="856" width="320" height="58" rx="6"/>
+    <text class="t" x="470" y="881">Inject warning into prompt context</text>
+    <text class="t2" x="470" y="899">options: (a) leave it (b) split (c) proceed</text>
+
+    <!-- 10 agent executes -->
+    <rect class="shape-local" x="310" y="956" width="320" height="58" rx="6"/>
+    <text class="t t-local" x="470" y="981">Claude Code agent executes the task</text>
+    <text class="t2 t2-local" x="470" y="999">aware of teammate's work before editing</text>
+
+    <!-- 11 PostToolUse -->
+    <rect class="shape-hook" x="310" y="1051" width="320" height="58" rx="6"/>
+    <text class="t" x="470" y="1076">PostToolUse hook</text>
+    <text class="t2" x="470" y="1094">fires after each Edit / Write mid-turn</text>
+
+    <!-- 12 git diff (local) -->
+    <rect class="shape-local" x="310" y="1146" width="320" height="58" rx="6"/>
+    <text class="t t-local" x="470" y="1171">Extract changed hunks (local)</text>
+    <text class="t2 t2-local" x="470" y="1189">git diff -U0 → file + line ranges</text>
+
+    <!-- 13 kylon write editing -->
+    <rect class="shape-kylon" x="310" y="1241" width="320" height="58" rx="6"/>
+    <text class="t" x="470" y="1266">⇄ Kylon call — update heartbeat</text>
+    <text class="t2" x="470" y="1284">file write state-dev-a.json · status: editing</text>
+
+    <!-- 14 DECISION 2 -->
+    <polygon class="shape-dec" points="470,1330 600,1390 470,1450 340,1390"/>
+    <text class="t-dec" x="470" y="1381">My hunks collide with</text>
+    <text class="t-dec" x="470" y="1398">dev-b's live edits?</text>
+
+    <!-- 14b mid-turn notify (left) -->
+    <rect class="shape-kylon" x="35" y="1361" width="280" height="58" rx="6"/>
+    <text class="t" x="175" y="1383">⇄ Kylon call — warn mid-turn</text>
+    <text class="t2" x="175" y="1401">notify.mjs → message send #dev-sync</text>
+
+    <!-- 15 DECISION 3 -->
+    <polygon class="shape-dec" points="470,1505 600,1560 470,1615 340,1560"/>
+    <text class="t-dec" x="470" y="1555">Agent finished</text>
+    <text class="t-dec" x="470" y="1572">the turn?</text>
+
+    <!-- 16 Stop hook -->
+    <rect class="shape-hook" x="310" y="1651" width="320" height="58" rx="6"/>
+    <text class="t" x="470" y="1676">Stop hook</text>
+    <text class="t2" x="470" y="1694">turn summary from git diff --stat</text>
+
+    <!-- 17 kylon summary -->
+    <rect class="shape-kylon" x="310" y="1746" width="320" height="58" rx="6"/>
+    <text class="t" x="470" y="1771">⇄ Kylon call — publish outcome</text>
+    <text class="t2" x="470" y="1789">message send summary · heartbeat → idle</text>
+    <!-- note -->
+    <path class="shape-note" d="M680,1754 h170 v34 q-8.5,8 -17,0 q-8.5,-8 -17,0 q-8.5,8 -17,0 q-8.5,-8 -17,0 q-8.5,8 -17,0 q-8.5,-8 -17,0 q-8.5,8 -17,0 q-8.5,-8 -17,0 q-8.5,8 -17,0 q-8.5,-8 -17,0 z"/>
+    <text class="t-note" x="765" y="1769">dev-b's next prompt</text>
+    <text class="t-note" x="765" y="1782">sees all of this</text>
+    <line class="edge" x1="655" y1="1774" x2="634" y2="1774" stroke-dasharray="3 3"/>
+
+    <!-- 18 END -->
+    <ellipse class="shape-start" cx="470" cy="1885" rx="180" ry="38"/>
+    <text class="t" x="470" y="1881">Branches merge clean</text>
+    <text class="t2" x="470" y="1900">git merge feat-a feat-b → 0 conflicts</text>
+  </svg>
+  </div>
+
+  <footer>collab · claude code hooks × kylon workspace · every ⇄ box is a real CLI call</footer>
+</div>

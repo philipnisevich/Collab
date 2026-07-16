@@ -1,0 +1,4 @@
+node_modules/
+.collab/
+*.log
+.DS_Store
