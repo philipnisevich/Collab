@@ -18,8 +18,9 @@ written*, and coordinate in a Kylon channel everyone can read.
                        ┌────────────────────────────┐
                        │  Kylon workspace (hosted)   │
                        │  ├─ #dev-sync channel       │ ← agents + humans coordinate
-                       │  ├─ activity table          │ ← who's touching which lines
-                       │  └─ Kylon UI                │ ← the live dashboard, for free
+                       │  ├─ heartbeat state files   │ ← who's touching which lines
+                       │  ├─ Activity Board + threads│ ← live status, per-conflict negotiation
+                       │  └─ digest workflow         │ ← Kylon's own agent audits merge risk
                        └────────────────────────────┘
 ```
 
@@ -31,6 +32,11 @@ Four Claude Code hooks do the bridging:
 | `UserPromptSubmit` | **Predicts the file set the prompt will touch** (explicit paths + `git grep`'d symbols), publishes it as the agent's planning heartbeat, intersects it with every teammate's predicted + active sets, and injects tiered warnings *before any code is written* |
 | `PostToolUse` (Edit/Write) | Reports your changed hunks; on collision, warns the agent **mid-turn** and tells it to message the teammate |
 | `Stop` | Posts a turn summary ("renamed getUser→fetchUser, 6 files") so the teammate's next prompt sees it |
+| **Activity Board** | Live per-dev board message in `#dev-sync` — one line per file in flight with status 📝 planning / ✏️ editing / 🔴 CONFLICT and line ranges, updated in place on every heartbeat (this workspace retired table creation, so the board is a self-refreshing message) |
+| **Conflict threads** | Each ⚠️ conflict alert in `#dev-sync` gets a Kylon **thread**; `notify.mjs` auto-routes agent updates that mention the conflicted file into that thread so the negotiation stays organized |
+| **DM escalation** | ≥2 active collisions with the same teammate inside 10 min → the agent **DMs that teammate's human** ("your agents keep colliding in `<file>` — sync for 30s"), at most once per 10 min; DM address comes from `kylonUser` in `.collab.json`, advertised via the heartbeat |
+| **Merge-risk digest** | A **Kylon workflow** (`scripts/setup-workflow.sh`) — Kylon's own internal agent reads the heartbeat files every 15 min and posts a digest ("2 files contested, 0 clear") to `#dev-sync`. Created paused; `workflow resume <id>` to arm it |
+| **Gateway preflight** | `scripts/gateway-preflight.sh` — one command that detects the moment Kylon enables external agents on the workspace, then prints the `gateway run` command (see `docs/gateway.md`) |
 
 Conflict detection is deterministic (no LLM latency) and tiered per the
 [design doc](docs/design-doc.md):
@@ -86,15 +92,16 @@ Claude Code with hooks is fully functional, which is the primary flow.
 hooks/            the four hooks + notify.mjs (agent→agent messaging) + install.mjs
 hooks/lib/        overlap engine, git helpers, config, Kylon wrapper
 demo-app/         tiny zero-dep user API — the collision playground
-scripts/          setup-demo.sh (offline), setup-kylon.sh (live)
-tests/            overlap engine unit tests (npm test)
-docs/             demo script for the judges
+scripts/          setup-demo.sh (offline), setup-kylon.sh (live),
+                  setup-workflow.sh (digest), gateway-preflight.sh
+tests/            unit tests (npm test)
+docs/             demo script, design doc, gateway notes, workflow.html
 ```
 
 ## Design principles
 
 - **Warn, never block.** Prompts always run; agents get awareness, not handcuffs.
-- **No custom server.** Kylon channels + tables replace the entire relay layer.
+- **No custom server.** Kylon channels, workspace files, threads, and workflows replace the entire relay layer.
 - **Hooks never crash a session.** Every hook catches everything and exits 0.
 - **Honest injection points.** Claude Code can't be pushed mid-turn from outside,
   so teammate messages land at real seams: `PostToolUse` feedback during a turn,

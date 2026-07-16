@@ -41,6 +41,9 @@ export function loadConfig(cwd) {
 
   const cfg = {
     dev: process.env.COLLAB_DEV || fileCfg.dev || os.userInfo().username,
+    // This dev's HUMAN in Kylon (display name or user_… id) — how teammates'
+    // agents DM them on repeated collisions. Advertised via the heartbeat.
+    kylonUser: process.env.COLLAB_KYLON_USER || fileCfg.kylonUser || null,
     channel: process.env.COLLAB_CHANNEL || fileCfg.channel || "dev-sync",
     channelId: process.env.COLLAB_CHANNEL_ID || fileCfg.channelId || null,
     apiKey,

@@ -6,7 +6,7 @@
 import path from "node:path";
 import { loadConfig } from "./lib/config.mjs";
 import { currentBranch, fileHunks } from "./lib/git.mjs";
-import { reportActivity, fetchTeammateActivity } from "./lib/kylon.mjs";
+import { reportActivity, fetchTeammateActivity, markConflict, recordCollision, escalateDm } from "./lib/kylon.mjs";
 import { detectOverlap, formatFindings } from "./lib/overlap.mjs";
 import { readHookInput, emitContext, safely } from "./lib/io.mjs";
 
@@ -24,6 +24,13 @@ await safely(async () => {
   const change = fileHunks(cfg.repoRoot, filePath);
   if (!change.hunks.length) process.exit(0);
 
+  // Detect collisions BEFORE publishing so the Activity Board syncs once,
+  // already showing 🔴 conflict on the colliding file.
+  const theirs = fetchTeammateActivity(cfg).filter((r) => r.file);
+  const findings = detectOverlap([change], theirs, { fuzz: cfg.fuzz });
+  const high = findings.filter((f) => f.severity === "high");
+  markConflict(cfg, high.map((f) => f.file));
+
   reportActivity(
     cfg,
     change.hunks.map((h) => ({
@@ -38,13 +45,21 @@ await safely(async () => {
     }))
   );
 
-  const theirs = fetchTeammateActivity(cfg).filter((r) => r.file);
-  const findings = detectOverlap([change], theirs, { fuzz: cfg.fuzz });
+  // Repeated hunk-level collisions with the same teammate → DM their human.
+  const escalated = [];
+  for (const f of high) {
+    if (recordCollision(cfg, f.theirs?.dev)) {
+      escalateDm(cfg, f.theirs.dev, f.theirs.kylonUser, f.file);
+      escalated.push(f.theirs.dev);
+    }
+  }
+
   const warning = formatFindings(findings);
   if (warning) {
     emitContext(
       "PostToolUse",
       warning +
+        (escalated.length ? `\n[Collab] Repeated collisions — ${escalated.join(", ")}'s human was DM'd to sync up.` : "") +
         `\nNotify your teammate's agent NOW so they can adapt: run\n` +
         `node ${import.meta.dirname}/notify.mjs "<file, lines, and what you changed>"\n` +
         `Then continue, preferring changes that minimize the collision (e.g. adapt to their rename/interface instead of fighting it).`
