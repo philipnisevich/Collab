@@ -2,8 +2,12 @@
 // fetchUser everywhere; Dev B will simultaneously add caching to getUser.
 import { db } from "./db.mjs";
 
+const _userCache = new Map();
 export function fetchUser(id) {
-  return db.users.get(id) ?? null;
+  if (_userCache.has(id)) return _userCache.get(id);
+  const user = db.users.get(id) ?? null;
+  _userCache.set(id, user);
+  return user;
 }
 
 export function listUsers() {
