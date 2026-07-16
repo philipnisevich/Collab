@@ -1,5 +1,5 @@
-// User service — the demo collision target. Dev A will rename getUser →
-// fetchUser everywhere; Dev B will simultaneously add caching to getUser.
+// User service. getUser was renamed to fetchUser (dev-a); fetchUser is
+// cached in-memory (dev-b).
 import { db } from "./db.mjs";
 
 const _userCache = new Map();
