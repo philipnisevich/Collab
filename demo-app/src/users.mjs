@@ -2,7 +2,7 @@
 // fetchUser everywhere; Dev B will simultaneously add caching to getUser.
 import { db } from "./db.mjs";
 
-export function getUser(id) {
+export function fetchUser(id) {
   return db.users.get(id) ?? null;
 }
 

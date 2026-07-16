@@ -1,6 +1,6 @@
 // Zero-dependency HTTP API on node:http.
 import http from "node:http";
-import { getUser, listUsers, createUser } from "./users.mjs";
+import { fetchUser, listUsers, createUser } from "./users.mjs";
 
 const json = (res, code, body) => {
   res.writeHead(code, { "content-type": "application/json" });
@@ -13,7 +13,7 @@ const server = http.createServer(async (req, res) => {
 
   if (req.method === "GET" && url.pathname === "/users") return json(res, 200, listUsers());
   if (req.method === "GET" && match) {
-    const user = getUser(match[1]);
+    const user = fetchUser(match[1]);
     return user ? json(res, 200, user) : json(res, 404, { error: "not found" });
   }
   if (req.method === "POST" && url.pathname === "/users") {
